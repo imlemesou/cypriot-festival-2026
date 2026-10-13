@@ -81,21 +81,29 @@
       overflow: hidden;
     }
 
-    .pdf-page canvas {
-      display: block;
-    }
+
+.page {
+  position: relative;
+}
+
+.page canvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
 
 .textLayer {
   position: absolute;
   inset: 0;
+  z-index: 2;
   overflow: hidden;
-  opacity: 1;
   line-height: 1;
   text-align: initial;
   transform-origin: 0 0;
-  z-index: 2;
   user-select: text;
   -webkit-user-select: text;
+  -webkit-touch-callout: default;
+  cursor: text;
 }
 
 .textLayer span,
