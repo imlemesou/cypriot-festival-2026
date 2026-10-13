@@ -129,7 +129,7 @@
     <nav class="buttons" aria-label="Επιλογή προγράμματος">
       <a id="sat" href="?day=saturday">Σάββατο</a>
       <a id="sun" href="?day=sunday">Κυριακή</a>
-      <a id="sun" href="index.html">Αρχικ</a>
+      <a id="sun" href="index.html">Αρχική</a>
     </nav>
   </header>
 
@@ -139,6 +139,8 @@
   <script type="module">
     import * as pdfjsLib from
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
+    import * as pdfjsViewer from
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf_viewer.mjs";
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
@@ -228,7 +230,8 @@
 
           const textContent = await page.getTextContent();
 
-          const textLayer = new pdfjsLib.TextLayer({
+          // Χρήση του pdfjsViewer αντί για pdfjsLib για τη δημιουργία του text layer
+          const textLayer = new pdfjsViewer.TextLayer({
             textContentSource: textContent,
             container: textLayerDiv,
             viewport
