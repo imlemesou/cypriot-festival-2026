@@ -1,0 +1,95 @@
+```html
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Προγράμματα Φεστιβάλ Κυπριακής Παράδοσης</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f6efdf;
+      color: #302719;
+    }
+
+    header {
+      padding: 16px 12px;
+      text-align: center;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .buttons a {
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: #45553a;
+      color: white;
+      text-decoration: none;
+    }
+
+    .buttons a.active {
+      background: #8b5e35;
+    }
+
+    .viewer {
+      width: 100%;
+      height: calc(100vh - 190px);
+      min-height: 450px;
+      border: 0;
+      display: block;
+      background: white;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h2 id="title">Πρόγραμμα Σαββάτου</h2>
+
+    <div class="buttons">
+      <a id="sat" href="?day=saturday">Πρόγραμμα Σαββάτου</a>
+      <a id="sun" href="?day=sunday">Πρόγραμμα Κυριακής</a>
+      <a id="download" href="#" target="_blank" rel="noopener">
+        Άνοιγμα PDF
+      </a>
+    </div>
+  </header>
+
+  <iframe id="viewer" class="viewer" title="Πρόγραμμα φεστιβάλ"></iframe>
+
+  <script>
+    const files = {
+      saturday: {
+        title: "Πρόγραμμα Σαββάτου — 24 Οκτωβρίου 2026",
+        file: "Σάββατο 24.10.2026.pdf"
+      },
+      sunday: {
+        title: "Πρόγραμμα Κυριακής — 25 Οκτωβρίου 2026",
+        file: "Κυριακή 25.10.2026.pdf"
+      }
+    };
+
+    const params = new URLSearchParams(location.search);
+    const day = params.get("day") === "sunday" ? "sunday" : "saturday";
+    const selected = files[day];
+    const pdf = encodeURI(selected.file);
+
+    document.getElementById("title").textContent = selected.title;
+    document.getElementById("viewer").src = pdf;
+    document.getElementById("download").href = pdf;
+    document.getElementById(day === "saturday" ? "sat" : "sun")
+      .classList.add("active");
+  </script>
+</body>
+</html>
+```
