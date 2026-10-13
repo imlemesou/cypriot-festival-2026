@@ -1,8 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="el">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6efdf">
   <title>Προγράμματα Φεστιβάλ Κυπριακής Παράδοσης</title>
 
   <style>
@@ -16,8 +18,17 @@
     }
 
     header {
-      padding: 16px 12px;
+      padding: 18px 12px 14px;
       text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(20px, 5vw, 28px);
+      margin: 0 0 8px;
+    }
+
+    #subtitle {
+      margin: 0 0 16px;
     }
 
     .buttons {
@@ -25,70 +36,144 @@
       justify-content: center;
       flex-wrap: wrap;
       gap: 10px;
-      margin: 16px 0;
     }
 
     .buttons a {
+      display: inline-block;
       padding: 12px 16px;
       border-radius: 8px;
       background: #45553a;
       color: white;
       text-decoration: none;
+      font-weight: bold;
     }
 
     .buttons a.active {
       background: #8b5e35;
     }
 
-    .viewer {
+    #status {
+      text-align: center;
+      padding: 18px;
+    }
+
+    #document {
       width: 100%;
-      height: calc(100vh - 190px);
-      min-height: 450px;
-      border: 0;
+      padding: 0 8px 20px;
+    }
+
+    .pdf-page {
       display: block;
+      width: 100%;
+      height: auto;
+      margin: 0 auto 12px;
       background: white;
+      box-shadow: 0 2px 8px #0002;
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h2 id="title">Πρόγραμμα Σαββάτου</h2>
+    <h1 id="title">Πρόγραμμα Σαββάτου</h1>
+    <p id="subtitle">24 Οκτωβρίου 2026</p>
 
-    <div class="buttons">
-      <a id="sat" href="?day=saturday">Πρόγραμμα Σαββάτου</a>
-      <a id="sun" href="?day=sunday">Πρόγραμμα Κυριακής</a>
-      <a id="download" href="#" target="_blank" rel="noopener">
-        Άνοιγμα PDF
-      </a>
-    </div>
+    <nav class="buttons" aria-label="Επιλογή προγράμματος">
+      <a id="sat" href="?day=saturday">Σάββατο</a>
+      <a id="sun" href="?day=sunday">Κυριακή</a>
+    </nav>
   </header>
 
-  <iframe id="viewer" class="viewer" title="Πρόγραμμα φεστιβάλ"></iframe>
+  <p id="status" role="status">Φόρτωση προγράμματος…</p>
+  <main id="document"></main>
 
-  <script>
-    const files = {
+  <script type="module">
+    import * as pdfjsLib from
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+
+    const programs = {
       saturday: {
-        title: "Πρόγραμμα Σαββάτου — 24 Οκτωβρίου 2026",
+        title: "Πρόγραμμα Σαββάτου",
+        subtitle: "24 Οκτωβρίου 2026",
         file: "Σάββατο 24.10.2026.pdf"
       },
       sunday: {
-        title: "Πρόγραμμα Κυριακής — 25 Οκτωβρίου 2026",
+        title: "Πρόγραμμα Κυριακής",
+        subtitle: "25 Οκτωβρίου 2026",
         file: "Κυριακή 25.10.2026.pdf"
       }
     };
 
     const params = new URLSearchParams(location.search);
-    const day = params.get("day") === "sunday" ? "sunday" : "saturday";
-    const selected = files[day];
-    const pdf = "./" + encodeURIComponent(selected.file);
+    const day = params.get("day") === "sunday"
+      ? "sunday"
+      : "saturday";
 
-    document.getElementById("title").textContent = selected.title;
-    document.getElementById("viewer").src = pdf;
-    document.getElementById("download").href = pdf;
+    const program = programs[day];
+    const status = document.getElementById("status");
+    const container = document.getElementById("document");
+
+    document.title = program.title + " | Φεστιβάλ Κυπριακής Παράδοσης";
+    document.getElementById("title").textContent = program.title;
+    document.getElementById("subtitle").textContent = program.subtitle;
     document.getElementById(day === "saturday" ? "sat" : "sun")
       .classList.add("active");
+
+    async function renderPDF() {
+      try {
+        const pdfURL = new URL(program.file, location.href).href;
+        const pdf = await pdfjsLib.getDocument(pdfURL).promise;
+
+        status.textContent = "";
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+          const page = await pdf.getPage(pageNumber);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const availableWidth = Math.max(
+            280,
+            container.clientWidth - 16
+          );
+          const scale = availableWidth / baseViewport.width;
+          const viewport = page.getViewport({ scale });
+
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+          canvas.className = "pdf-page";
+          canvas.setAttribute("role", "img");
+          canvas.setAttribute(
+            "aria-label",
+            `Σελίδα ${pageNumber} από ${pdf.numPages}`
+          );
+
+          canvas.width = Math.floor(viewport.width * pixelRatio);
+          canvas.height = Math.floor(viewport.height * pixelRatio);
+          canvas.style.width = `${viewport.width}px`;
+          canvas.style.maxWidth = "100%";
+
+          container.appendChild(canvas);
+
+          await page.render({
+            canvasContext: context,
+            viewport,
+            transform: pixelRatio === 1
+              ? null
+              : [pixelRatio, 0, 0, pixelRatio, 0, 0]
+          }).promise;
+        }
+      } catch (error) {
+        console.error(error);
+        status.textContent =
+          "Δεν ήταν δυνατή η φόρτωση του προγράμματος. " +
+          "Έλεγξε ότι το PDF υπάρχει στον ίδιο φάκελο με το provoli.html.";
+      }
+    }
+
+    renderPDF();
   </script>
 </body>
-</html>F
-```
+</html>
