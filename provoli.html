@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="el">
 <head>
@@ -82,7 +81,7 @@
     const params = new URLSearchParams(location.search);
     const day = params.get("day") === "sunday" ? "sunday" : "saturday";
     const selected = files[day];
-    const pdf = encodeURI(selected.file);
+    const pdf = "./" + encodeURIComponent(selected.file);
 
     document.getElementById("title").textContent = selected.title;
     document.getElementById("viewer").src = pdf;
@@ -91,5 +90,5 @@
       .classList.add("active");
   </script>
 </body>
-</html>
+</html>F
 ```
